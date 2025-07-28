@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Avatar Graduation Walk</title>
+
+  <!-- STYLE SECTION -->
+  <style>
+    /* ===== Overall Page Setup ===== */
+    body {
+      margin: 0;                 /* Remove default spacing */
+      background: #000;          /* Set background to black for stage effect */
+      overflow: hidden;          /* Prevent scrollbars from appearing */
+    }
+
+    /* ===== Main Container for Animation ===== */
+    .stage {
+      position: relative;        /* Allows child elements (avatar, spotlight) to be positioned absolutely inside */
+      width: 100vw;              /* Full width of viewport */
+      height: 100vh;             /* Full height of viewport */
+      overflow: hidden;          /* Ensure nothing overflows the stage */
+    }
+
+    /* ===== Shared Styles for Avatar and Spotlight ===== */
+    .avatar, .spotlight {
+      position: absolute;        /* Allow placement using left/top coordinates */
+      top: 50%;                  /* Vertically center */
+      transform: translateY(-50%); /* Perfect vertical centering */
+      z-index: 2;                /* Ensure they appear above background */
+    }
+
+    /* ===== Avatar Image Styling ===== */
+    .avatar {
+      left: -200px;              /* Start offscreen to the left */
+      width: 150px;              /* Reasonable size for avatar */
+    }
+
+    /* ===== Spotlight Styling ===== */
+    .spotlight {
+      top: 0;
+      left: -200px;              /* Matches avatar's starting position */
+      width: 200px;
+      height: 100vh;
+      background: radial-gradient(ellipse at center, rgba(255,255,200,0.3) 0%, transparent 80%);
+      z-index: 1;                /* Behind avatar */
+    }
+
+    /* ===== Walk Animation Class ===== */
+    .walk {
+      animation: walkLoop 20s linear infinite alternate; /* Moves avatar and spotlight across screen */
+    }
+
+    /* Keyframes to move left → right across screen */
+    @keyframes walkLoop {
+      0%   { left: -200px; }
+      100% { left: 100vw; }       /* Off-screen on the right */
+    }
+
+    /* ===== Confetti Styling ===== */
+    .confetti, .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 0.8;
+      z-index: 3;                /* Above avatar */
+    }
+
+    .confetti {
+      background-color: yellow;
+      animation: fall linear infinite; /* Falling animation */
+    }
+
+    .sparkle {
+      background-color: white;
+      box-shadow: 0 0 8px 4px white; /* Glow effect */
+      animation: sparkleFall linear infinite;
+    }
+
+    /* Confetti fall from top to bottom */
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Sparkle fall with scale shrink */
+    @keyframes sparkleFall {
+      0% {
+        transform: translateY(-20px) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    /* ===== Banner Text Style ===== */
+    .banner {
+      position: fixed;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 3em;
+      color: lightpink;
+      font-family: 'Pacifico', cursive;
+      z-index: 5;                /* Topmost element */
+      pointer-events: none;      /* Allows clicks to pass through */
+      display: none;             /* Hidden by default */
+    }
+
+    /* ===== Shared Button Styling ===== */
+    .start-btn {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 16px 40px;
+      font-size: 1.2em;
+      background: #f8cdd8;
+      border: 2px solid #fff0f5;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 10;
+      font-family: 'Segoe UI', sans-serif;
+      color: #3b3b3b;
+      box-shadow: 0 6px 18px rgba(255, 182, 193, 0.3);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    /* Button hover effects */
+    .start-btn:hover {
+      background: linear-gradient(145deg, #ffcce0, #ffb6c1);
+      box-shadow: 0 10px 25px rgba(255, 182, 193, 0.7);
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    /* Class to hide buttons */
+    .start-btn.hide {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Celebration Banner (appears after animation starts) -->
+  <div class="banner" id="banner">Congratulations</div>
+
+  <!-- Button to trigger the avatar animation -->
+  <button class="start-btn" id="startBtn">Associate of Science in Computer Science</button>
+
+  <!-- Button to navigate to Bachelor degree page -->
+  <button class="start-btn" id="bachelorBtn"
+    onclick="window.location.href='bachelor.html'"
+    style="top: 65%; transform: translate(-50%, -50%);">
+    Bachelor of Science in Computer Science
+  </button>
+
+  <!-- Main stage where animation and effects happen -->
+  <div class="stage">
+    <!-- Spotlight element that moves with the avatar -->
+    <div class="spotlight" id="spotlight"></div>
+
+    <!-- Avatar image that walks across the stage -->
+    <img src="avatar_transparent.png" class="avatar" alt="Avatar" id="avatar">
+
+    <!-- Background music -->
+    <audio autoplay>
+      <source src="graduation_music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Cheering sound effect -->
+    <audio id="crowd" autoplay>
+      <source src="cheering_crowd.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <!-- SCRIPT SECTION: Interactivity and Animation Triggers -->
+  <script>
+    /**
+     * Generate 100 colorful confetti particles with random position and animation
+     */
+    function createConfetti() {
+      const stage = document.querySelector('.stage');
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * window.innerWidth + 'px';
+        confetti.style.top = Math.random() * -window.innerHeight + 'px';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        confetti.style.animationDelay = Math.random() + 's';
+        stage.appendChild(confetti);
+      }
+    }
+
+    /**
+     * Generate 30 glowing white sparkles
+     */
+    function createSparkles() {
+      const stage = document.querySelector('.stage');
+      for (let i = 0; i < 30; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.style.left = Math.random() * window.innerWidth + 'px';
+        sparkle.style.top = Math.random() * -window.innerHeight + 'px';
+        sparkle.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        sparkle.style.animationDelay = Math.random() + 's';
+        stage.appendChild(sparkle);
+      }
+    }
+
+    // Reference important elements
+    const btn = document.getElementById('startBtn');
+    const avatar = document.getElementById('avatar');
+    const spotlight = document.getElementById('spotlight');
+
+    /**
+     * Start animation when user clicks the button
+     */
+    btn.addEventListener('click', () => {
+      document.getElementById('bachelorBtn').classList.add('hide'); // Hide other button
+      addBackButton();                     // Add "Back" button to return to main
+      createConfetti();                    // Generate falling confetti
+      createSparkles();                    // Generate sparkles
+      document.getElementById('banner').style.display = 'block'; // Show banner
+      avatar.classList.add('walk');        // Start avatar animation
+      spotlight.classList.add('walk');     // Start spotlight animation
+      btn.classList.add('hide');           // Hide the "Start" button
+    });
+
+    /**
+     * Add a "Back to Main Page" button that reloads the page
+     */
+    function addBackButton() {
+      if (!document.getElementById('backBtn')) {
+        const backBtn = document.createElement('button');
+        backBtn.id = 'backBtn';
+        backBtn.className = 'start-btn';
+        backBtn.style.top = '80%';
+        backBtn.textContent = 'Back to Main Page';
+        backBtn.onclick = () => location.reload(); // Reload page to reset state
+        document.body.appendChild(backBtn);
+      }
+    }
+  </script>
+</body>
+</html>
