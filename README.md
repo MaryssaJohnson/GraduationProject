@@ -15,6 +15,6 @@ JavaScript
 Interactive — triggering the avatar walk, showing/hiding elements, playing sound, and generating confetti/sparkles.
 
 Media 
-An avatar image (avatar_transparent.png) for the character animation
+An avatar image for the character animation
 
-Audio files (graduation_music.mp3 and cheering_crowd.mp3) for background music and sound effects 
+Audio files for background music and sound effects 
